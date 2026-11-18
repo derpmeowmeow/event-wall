@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Event Wall</title>
+<style>
+  :root{
+    --accent:#FF3D7F;
+    --accent-dark:#E01B5F;
+    --ink:#111318;
+    --muted:#6B7080;
+    --line:#111318;
+    --card-border:2px solid var(--line);
+    --radius:14px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:#FFFFFF;
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.5;
+  }
+  .wrap{max-width:1100px;margin:0 auto;padding:32px 20px 80px}
+
+  header.top{
+    display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;
+    border-bottom:3px solid var(--line);padding-bottom:16px;margin-bottom:8px;
+  }
+  .brand{font-size:2rem;font-weight:900;letter-spacing:-1px}
+  .brand .dot{color:var(--accent)}
+  .tagline{color:var(--muted);font-weight:600}
+  .notice{
+    margin:14px 0 6px;padding:10px 14px;border:var(--card-border);border-left:8px solid var(--accent);
+    border-radius:10px;font-size:.85rem;color:var(--muted);font-weight:600;
+  }
+  section{margin-top:44px}
+  .sec-head{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .sec-num{
+    width:34px;height:34px;border-radius:9px;background:var(--accent);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1rem;flex:0 0 auto;
+  }
+  h2{font-size:1.5rem;font-weight:900;letter-spacing:-.5px}
+  .sec-sub{color:var(--muted);font-weight:600;font-size:.95rem;margin-bottom:18px;margin-left:46px}
+
+  /* ---------- Submit ---------- */
+  .submit-grid{max-width:640px}
+  .card{border:var(--card-border);border-radius:var(--radius);background:#fff;box-shadow:6px 6px 0 rgba(17,19,24,.08)}
+
+  .capture-hero{
+    padding:44px 20px;text-align:center;cursor:pointer;transition:background .15s;
+    border-radius:var(--radius) var(--radius) 0 0;background:#FFF0F5;
+  }
+  .capture-hero:hover{background:#FFE0EB}
+  .capture-hero .icon{font-size:3rem;margin-bottom:10px}
+  .capture-hero strong{display:block;font-size:1.25rem;letter-spacing:-.3px}
+  .capture-hero span{color:var(--muted);font-size:.85rem;font-weight:600}
+  .submit-panel-body{padding:0 20px 20px}
+  .consent{
+    display:flex;gap:10px;align-items:flex-start;padding:12px;border:2px dashed var(--line);
+    border-radius:10px;margin-bottom:14px;font-size:.85rem;font-weight:600;cursor:pointer;
+  }
+  .consent input{width:18px;height:18px;margin-top:2px;accent-color:var(--accent);flex:0 0 auto}
+  .consent.agreed{border-style:solid;border-color:var(--accent);background:#FFF0F5}
+  .consent small{display:block;color:var(--muted);font-weight:500}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:.8rem;font-weight:800;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+  .field input[type=text]{
+    width:100%;padding:10px 12px;border:2px solid var(--line);border-radius:8px;font-size:.95rem;font-family:inherit;
+  }
+  .field input[type=text]:focus{outline:none;border-color:var(--accent)}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    border:2px solid var(--line);border-radius:10px;padding:11px 20px;
+    font-weight:800;font-size:.95rem;font-family:inherit;cursor:pointer;background:#fff;color:var(--ink);
+    transition:transform .1s, box-shadow .1s, background .15s;
+  }
+  .btn:active{transform:translate(2px,2px);box-shadow:none!important}
+  .btn-primary{background:var(--accent);color:#fff;box-shadow:4px 4px 0 var(--ink)}
+  .btn-primary:hover{background:var(--accent-dark)}
+  .btn-primary:disabled{background:#D9DBE1;color:#9AA0AE;cursor:not-allowed;box-shadow:4px 4px 0 #B9BCC4}
+  .btn-approve{background:#0FBF7A;color:#fff;box-shadow:3px 3px 0 var(--ink)}
+  .btn-approve:hover{background:#0DA36A}
+  .btn-reject{background:#fff;color:var(--ink);box-shadow:3px 3px 0 var(--ink)}
+  .btn-reject:hover{background:#FEE2E2}
+  .btn-sm{padding:8px 14px;font-size:.85rem}
+  .msg{margin-top:10px;font-size:.85rem;font-weight:700;min-height:1.2em}
+  .msg.ok{color:#0B8A58}
+  .msg.err{color:var(--accent-dark)}
+
+  /* ---------- Queue ---------- */
+  .queue-empty{padding:26px;text-align:center;color:var(--muted);font-weight:700;border:2px dashed var(--line);border-radius:var(--radius)}
+  .queue-list{display:flex;flex-direction:column;gap:14px}
+  .queue-item{display:flex;gap:16px;align-items:center;padding:14px 16px;flex-wrap:wrap}
+  .queue-item .pic{width:72px;height:72px;border-radius:10px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;font-size:2rem;color:#fff;overflow:hidden}
+  .queue-item .pic img,.queue-item .pic video{width:100%;height:100%;object-fit:cover;border-radius:8px}
+  .qmeta{flex:1;min-width:180px}
+  .qmeta b{font-size:1rem}
+  .qmeta .by{color:var(--muted);font-size:.8rem;font-weight:600}
+  .qmeta .quote{font-size:.85rem;color:var(--ink);margin-top:4px;font-style:italic}
+  .qactions{display:flex;gap:10px;flex:0 0 auto}
+
+  /* ---------- Live Screen ---------- */
+  .live-controls{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .live-controls .status{font-size:.85rem;font-weight:800;color:var(--muted)}
+  .live-controls .status b{color:var(--accent-dark)}
+  .stage{
+    border:3px solid var(--line);border-radius:var(--radius);min-height:380px;
+    display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+    background:linear-gradient(135deg,#FFF0F5,#FFFFFF 60%);
+  }
+  .stage-media{max-width:100%;max-height:420px;text-align:center;padding:24px}
+  .stage-media img{max-width:100%;max-height:360px;border-radius:12px;border:2px solid var(--line)}
+  .stage-media video{max-width:100%;max-height:360px;border-radius:12px;border:2px solid var(--line)}
+  .stage-emoji{font-size:7rem;line-height:1;margin-bottom:14px}
+  .stage-caption{font-size:1.3rem;font-weight:900;margin-top:14px;letter-spacing:-.5px}
+  .stage-sub{color:var(--muted);font-weight:700;font-size:.95rem}
+  .stage-empty{color:var(--muted);font-weight:700;padding:40px}
+  .stage-badge{
+    position:absolute;top:14px;left:14px;background:var(--accent);color:#fff;font-weight:900;
+    font-size:.7rem;text-transform:uppercase;letter-spacing:1px;padding:6px 12px;border-radius:99px;
+    display:flex;align-items:center;gap:7px;
+  }
+  .live-dot{width:8px;height:8px;background:#fff;border-radius:99%;animation:blink 1.2s infinite}
+  @keyframes blink{50%{opacity:.2}}
+  .progress{margin-top:12px;height:6px;border:2px solid var(--line);border-radius:99px;overflow:hidden}
+  .progress i{display:block;height:100%;background:var(--accent);width:0%;transition:width .3s linear}
+
+  /* ---------- Notification strip ---------- */
+  .notif-strip{
+    margin-top:14px;display:flex;flex-wrap:wrap;gap:8px;
+  }
+  .notif{
+    display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border:2px solid var(--line);
+    border-radius:99px;font-size:.78rem;font-weight:800;background:#fff;max-width:100%;
+  }
+  .notif .n-emoji{font-size:1rem;line-height:1}
+  .notif .n-tag{font-size:.62rem;text-transform:uppercase;letter-spacing:.8px;padding:3px 8px;border-radius:99px;color:#fff;flex:0 0 auto}
+  .notif .n-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+  .notif.next .n-tag{background:var(--accent)}
+  .notif.submitted{border-style:dashed}
+  .notif.submitted .n-tag{background:#8A6D1A}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">Event<span class="dot">Wall</span></div>
+    <div class="tagline">Raya Open House 2026 · Kuala Lumpur — Guest Photo Wall</div>
+  </header>
+  <div class="notice">Demo only — everything runs in this page and resets when you leave. No uploads leave your device.</div>
+
+  <!-- 1. SUBMIT -->
+  <section id="submit">
+    <div class="sec-head"><div class="sec-num">1</div><h2>Submit</h2></div>
+    <p class="sec-sub">Guests: add a photo or short video from your phone to appear on the event screen.</p>
+    <div class="submit-grid">
+      <div class="card">
+        <div class="capture-hero" id="cameraBtn" role="button" tabindex="0">
+          <div class="icon">📸</div>
+          <strong>Show us what you're doing at our event!</strong>
+          <span>Take a photo or short video!</span>
+        </div>
+        <div class="submit-panel-body">
+          <input type="file" id="fileInput" accept="image/*,video/*" hidden>
+          <input type="file" id="captureInput" accept="image/*,video/*" capture="environment" hidden>
+          <button class="btn btn-sm" id="uploadBtn" style="width:100%;margin-top:16px">📁 …or upload a photo / short video from your phone</button>
+          <div class="field" style="margin-top:14px">
+            <label for="nameInput">Your name</label>
+            <input type="text" id="nameInput" placeholder="e.g. Aiman">
+          </div>
+          <div class="field">
+            <label for="captionInput">Caption</label>
+            <input type="text" id="captionInput" placeholder="e.g. Ketupat time! 🍢">
+          </div>
+          <label class="consent" id="consentBox">
+            <input type="checkbox" id="consentCheck">
+            <span>I agree to share this with the organizers and to have it shown on the event screen.
+            <small id="consentHint">Required for your first submission this session.</small></span>
+          </label>
+          <button class="btn btn-primary" id="submitBtn" style="width:100%">Submit to Review Queue</button>
+          <div class="msg" id="submitMsg"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. REVIEW QUEUE -->
+  <section id="queue">
+    <div class="sec-head"><div class="sec-num">2</div><h2>Review Queue</h2></div>
+    <p class="sec-sub">Host: approve or reject each upload. Approved items go straight to the Live Screen.</p>
+    <div class="queue-list" id="queueList"></div>
+    <div class="queue-empty" id="queueEmpty" hidden>Queue is clear — every upload has been moderated. 🎉</div>
+  </section>
+
+  <!-- 3. LIVE SCREEN -->
+  <section id="live">
+    <div class="sec-head"><div class="sec-num">3</div><h2>Live Screen</h2></div>
+    <p class="sec-sub">This is what the event display shows. Approved items cycle automatically and loop.</p>
+    <div class="live-controls">
+      <button class="btn btn-primary" id="playBtn">⏸ Pause</button>
+      <button class="btn btn-sm" id="nextBtn">Next ›</button>
+      <span class="status">Showing <b id="liveCount">0</b> approved item(s) · <span id="liveState">playing</span></span>
+    </div>
+    <div class="stage" id="stage"></div>
+    <div class="progress" id="progressBar"><i id="progressFill"></i></div>
+    <div class="notif-strip" id="notifStrip" hidden></div>
+  </section>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var ACCENTS = ["#FF3D7F","#0FBF7A","#5B6CFF","#F5A623","#9B51E0","#00B8D9"];
+  var EMOJIS  = ["🍢","🕌","🏮","🎉","🥻","🍚","📸","💃"];
+
+  function pickColor(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))>>>0;return ACCENTS[h%ACCENTS.length];}
+  function pickEmoji(s){var h=0;for(var i=0;i<s.length;i++)h=(h*17+s.charCodeAt(i))>>>0;return EMOJIS[h%EMOJIS.length];}
+
+  // ----- State (in-memory only) -----
+  var items = [
+    {id:1, name:"Nurul",  caption:"Ketupat and rendang at grandma's — Selamat Hari Raya!", type:"photo", media:null, emoji:"🍢", status:"approved"},
+    {id:2, name:"Aiman",  caption:"Fireworks over KLCC from the rooftop party 🎆",          type:"photo", media:null, emoji:"🎆", status:"approved"},
+    {id:3, name:"Mei Ling", caption:"Lion dance crew warming up at the lobby!",              type:"video", media:null, emoji:"🦁", status:"pending"}
+  ];
+  var nextId = 4;
+  var consentGiven = false;           // remembered while page stays open
+  var lastFileForSubmit = null;       // preview picked via upload area
+  var liveIndex = 0;
+  var playing = true;
+  var progressTimer = null, tickTimer = null;
+  var SLIDE_SECONDS = 5;
+  var progressPct = 0;
+
+  var $ = function(id){return document.getElementById(id);};
+
+  function approved(){ return items.filter(function(it){return it.status==="approved";}); }
+  function pending(){ return items.filter(function(it){return it.status==="pending";}); }
+
+  // ----- Rendering -----
+  function renderQueue(){
+    var list = $("queueList");
+    list.innerHTML = "";
+    var q = pending();
+    $("queueEmpty").hidden = q.length !== 0;
+    q.forEach(function(it){
+      var d = document.createElement("div");
+      d.className = "queue-item card";
+      var pic = document.createElement("div");
+      pic.className = "pic";
+      pic.style.background = pickColor(it.name);
+      if (it.media) { pic.innerHTML = it.type==="video" ? '<video src="'+it.media+'" muted></video>' : '<img src="'+it.media+'" alt="">'; }
+      else pic.textContent = it.emoji || pickEmoji(it.caption);
+      var meta = document.createElement("div");
+      meta.className = "qmeta";
+      meta.innerHTML = '<b>'+esc(it.caption)+'</b><div class="by">by '+esc(it.name)+' · '+(it.type==="video"?"short video":"photo")+'</div><div class="quote">“'+esc(it.caption)+'” — '+esc(it.name)+'</div>';
+      var acts = document.createElement("div");
+      acts.className = "qactions";
+      var ap = document.createElement("button");
+      ap.className = "btn btn-approve btn-sm"; ap.textContent = "✓ Approve";
+      ap.onclick = function(){ moderate(it.id, "approved"); };
+      var rj = document.createElement("button");
+      rj.className = "btn btn-reject btn-sm"; rj.textContent = "✕ Reject";
+      rj.onclick = function(){ moderate(it.id, "rejected"); };
+      acts.appendChild(ap); acts.appendChild(rj);
+      d.appendChild(pic); d.appendChild(meta); d.appendChild(acts);
+      list.appendChild(d);
+    });
+  }
+
+  function renderLive(){
+    var ap = approved();
+    $("liveCount").textContent = ap.length;
+    $("liveState").textContent = playing ? "playing" : "paused";
+    $("playBtn").textContent = playing ? "⏸ Pause" : "▶ Play";
+    var stage = $("stage");
+    if (ap.length === 0){
+      stopProgress();
+      stage.innerHTML = '<div class="stage-empty">No approved items yet.<br>Approve something in the Review Queue and it will show up here.</div>';
+      return;
+    }
+    if (liveIndex >= ap.length) liveIndex = 0;
+    var it = ap[liveIndex];
+    stage.innerHTML = '<div class="stage-badge"><span class="live-dot"></span>LIVE</div>';
+    var box = document.createElement("div");
+    box.className = "stage-media";
+    if (it.media && it.type === "photo"){
+      var img = document.createElement("img"); img.src = it.media; img.alt = esc(it.caption);
+      box.appendChild(img);
+    } else if (it.media && it.type === "video"){
+      var v = document.createElement("video");
+      v.src = it.media; v.autoplay = true; v.loop = false; v.muted = true; v.playsInline = true;
+      v.onended = nextSlide;
+      box.appendChild(v);
+    } else {
+      var e = document.createElement("div");
+      e.className = "stage-emoji";
+      e.textContent = it.emoji || pickEmoji(it.caption);
+      box.appendChild(e);
+    }
+    var cap = document.createElement("div");
+    cap.className = "stage-caption"; cap.textContent = it.caption;
+    var sub = document.createElement("div");
+    sub.className = "stage-sub"; sub.textContent = "— " + it.name;
+    box.appendChild(cap); box.appendChild(sub);
+    stage.appendChild(box);
+  }
+
+  function esc(s){return String(s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });}
+
+  // ----- Notification strip: up to 5 chips, "Next on the wall" + "Just submitted!" -----
+  function renderNotifs(){
+    var strip = $("notifStrip");
+    var ap = approved();
+    var chips = [];
+    // upcoming approved items (the ones after the currently displayed one, in cycle order)
+    if (ap.length > 0){
+      for (var i = 1; i <= ap.length - 1 && chips.length < 5; i++){
+        var it = ap[(liveIndex + i) % ap.length];
+        chips.push({tag:"Next on the wall", cls:"next", emoji:it.emoji || pickEmoji(it.caption), text:it.caption});
+      }
+    }
+    // newest pending submissions
+    pending().slice().reverse().forEach(function(it){
+      if (chips.length < 5) chips.push({tag:"Just submitted!", cls:"submitted", emoji:it.emoji || pickEmoji(it.caption), text:it.caption});
+    });
+    strip.hidden = chips.length === 0;
+    strip.innerHTML = "";
+    chips.forEach(function(c){
+      var d = document.createElement("div");
+      d.className = "notif " + c.cls;
+      d.innerHTML = '<span class="n-tag">'+c.tag+'</span><span class="n-emoji">'+c.emoji+'</span><span class="n-text">'+esc(c.text)+'</span>';
+      strip.appendChild(d);
+    });
+  }
+
+  function renderAll(){ renderQueue(); renderLive(); renderNotifs(); }
+
+  // ----- Feature 1: one-time consent -----
+  function refreshConsentUI(){
+    var box = $("consentBox"), check = $("consentCheck"), hint = $("consentHint");
+    box.classList.toggle("agreed", consentGiven);
+    check.checked = consentGiven;
+    check.disabled = consentGiven;
+    hint.textContent = consentGiven
+      ? "Thanks — consent remembered for this session."
+      : "Required for your first submission this session.";
+  }
+  $("consentBox").addEventListener("click", function(e){
+    if (consentGiven && e.target !== $("consentCheck")) { /* keep it ticked */ }
+  });
+  $("consentCheck").addEventListener("change", function(){
+    if (this.checked) consentGiven = true;
+    refreshConsentUI();
+  });
+
+  // ----- Upload + capture area -----
+  var hero = $("cameraBtn"), fileInput = $("fileInput"), captureInput = $("captureInput");
+  hero.addEventListener("click", function(){ captureInput.click(); });
+  hero.addEventListener("keydown", function(e){ if (e.key === "Enter" || e.key === " "){ e.preventDefault(); captureInput.click(); } });
+  $("uploadBtn").addEventListener("click", function(){ fileInput.click(); });
+  fileInput.addEventListener("change", function(){
+    if (fileInput.files && fileInput.files[0]) handleFile(fileInput.files[0]);
+  });
+
+  function handleFile(f){
+    if (f.type.startsWith("image/") || f.type.startsWith("video/")){
+      lastFileForSubmit = f;
+      hero.querySelector("strong").textContent = "✓ " + f.name + " ready";
+      setMsg("ok", "File selected: " + f.name + " — add your name and caption, then submit.");
+    } else {
+      lastFileForSubmit = null;
+      setMsg("err", "Please choose an image or a short video file.");
+    }
+  }
+
+  function setMsg(kind, text){
+    var m = $("submitMsg");
+    m.className = "msg " + kind;
+    m.textContent = text;
+    if (kind === "ok") setTimeout(function(){ if(m.textContent===text) m.textContent=""; }, 4000);
+  }
+
+  // ----- Camera capture (phone-native via capture input) -----
+  var captureInput = $("captureInput");
+  $("cameraBtn").addEventListener("click", function(){ captureInput.click(); });
+  captureInput.addEventListener("change", function(){
+    if (captureInput.files && captureInput.files[0]) handleFile(captureInput.files[0]);
+  });
+
+  // ----- Submit -----
+  $("submitBtn").addEventListener("click", function(){
+    var name = $("nameInput").value.trim();
+    var caption = $("captionInput").value.trim();
+    if (!consentGiven){ setMsg("err","Please tick the consent box to agree first."); $("consentBox").scrollIntoView({behavior:"smooth", block:"center"}); return; }
+    if (!lastFileForSubmit){ setMsg("err","Choose a photo or short video using the upload area above."); return; }
+    if (!name){ setMsg("err","Please add your name."); return; }
+    if (!caption){ setMsg("err","Please add a short caption."); return; }
+    var isVideo = lastFileForSubmit.type.startsWith("video/");
+    var mediaUrl = URL.createObjectURL(lastFileForSubmit);
+    finishSubmit(name, caption, isVideo, mediaUrl, pickEmoji(caption));
+  });
+
+  function finishSubmit(name, caption, isVideo, mediaUrl, emoji){
+    var item = {
+      id: nextId++, name: name, caption: caption,
+      type: isVideo ? "video" : "photo",
+      media: mediaUrl, emoji: emoji || pickEmoji(caption),
+      status: "pending"
+    };
+    items.push(item);
+    $("nameInput").value = ""; $("captionInput").value = "";
+    lastFileForSubmit = null;
+    if (fileInput) fileInput.value = "";
+    hero.querySelector("strong").textContent = "Show us what you're doing at our event!";
+    hero.querySelector("span").textContent = "Take a photo or short video!";
+    setMsg("ok", "Submitted! Your item is in the Review Queue awaiting the host's approval.");
+    renderAll();
+  }
+
+  // ----- Feature 2: quick moderation -----
+  function moderate(id, newStatus){
+    var it = items.find(function(x){return x.id===id;});
+    if (!it) return;
+    it.status = newStatus;
+    if (newStatus === "approved"){
+      // jump the live screen to the freshly approved item so the host sees it land
+      var ap = approved();
+      liveIndex = Math.max(0, ap.indexOf(it));
+    }
+    renderAll();
+  }
+
+  // ----- Feature 3: auto loop display -----
+  function nextSlide(){
+    var ap = approved();
+    if (ap.length === 0) return;
+    liveIndex = (liveIndex + 1) % ap.length;   // loops back to start
+    progressPct = 0;
+    renderLive();
+    renderNotifs();
+  }
+  function startProgress(){
+    stopProgress();
+    progressTimer = setInterval(function(){
+      progressPct += 100 / (SLIDE_SECONDS * 10);
+      if (progressPct >= 100){ progressPct = 0; nextSlide(); }
+      $("progressFill").style.width = progressPct + "%";
+    }, 100);
+  }
+  function stopProgress(){
+    if (progressTimer){ clearInterval(progressTimer); progressTimer = null; }
+    $("progressFill").style.width = "0%";
+  }
+  function setPlaying(p){
+    playing = p;
+    $("liveState").textContent = playing ? "playing" : "paused";
+    $("playBtn").textContent = playing ? "⏸ Pause" : "▶ Play";
+    var v = document.querySelector("#stage video");
+    if (v){ if (playing) v.play().catch(function(){}); else v.pause(); }
+    if (playing) startProgress(); else stopProgress();
+  }
+  $("playBtn").addEventListener("click", function(){ setPlaying(!playing); });
+  $("nextBtn").addEventListener("click", function(){
+    progressPct = 0;
+    nextSlide();
+    if (!playing) renderLive();
+  });
+
+  // ----- Init -----
+  refreshConsentUI();
+  renderAll();
+  startProgress();
+})();
+</script>
+</body>
+</html>
